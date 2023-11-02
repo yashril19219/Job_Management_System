@@ -1,9 +1,9 @@
 const mongoose=require("mongoose");
 
-async function connectMongoDb(url){
-    return mongoose.connect(url,{useNewUrlParser: true, useUnifiedTopology: true});
-}
+const connectDB = async (uri)=>{
+    await mongoose.connect(uri);
+    console.log("Database connected");
+};
 
-module.exports={
-    connectMongoDb,
-}
+module.exports = connectDB;
+
