@@ -1,9 +1,10 @@
-const mongoose = require('mongoose');
-require('dotenv').config({path : "config/.env"})
 
-const connectDB = async ()=>{
-    await mongoose.connect(process.env.URI);
-    console.log('MongoDB Database is Connected to: cluster0');
+const mongoose=require("mongoose");
+
+const connectDB = async (uri)=>{
+    await mongoose.connect(uri);
+    console.log("Database connected");
 };
 
 module.exports = connectDB;
+

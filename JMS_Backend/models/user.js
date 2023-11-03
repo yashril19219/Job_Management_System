@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+ 
+const {Schema} = mongoose;
  
 const userSchema = new Schema({
     username: {
@@ -20,8 +21,11 @@ const userSchema = new Schema({
         enum: ['User','SuperAdmin','Admin','Moderator','JobManager'],
         default : "User"
     }
-});
+
+},{timestamps:true});
+ 
  
 const User= mongoose.model('User',userSchema);
  
-module.exports = User;
+module.exports = {User};
+

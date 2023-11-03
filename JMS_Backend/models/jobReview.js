@@ -10,17 +10,24 @@ const jobReviewSchema= new Schema({
     reviewer:{
         type:mongoose.Schema.Types.ObjectId,
         ref:'User',
-        required: true
     },
     status:{
         type: String,
         enum:['Approved','Pending','Rejected'],
         default:'Pending',
         required: true
+    },
+    createdBy:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'User',
+        required: true
     }
-})
+},{timestamps:true})
+
 
 const JobReview=mongoose.model('JobReview',jobReviewSchema);
 
 
-module.exports=Job;
+
+module.exports=JobReview;
+

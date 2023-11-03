@@ -18,7 +18,9 @@ const jobRequestSchema= new Schema({
         default:'Pending',
         required: true
     }
-})
+
+},{timestamps:true})
+
 
 const JobRequest=mongoose.model('JobRequest',jobRequestSchema);
 
