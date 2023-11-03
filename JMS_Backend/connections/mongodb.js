@@ -1,9 +1,9 @@
-const mongoose=require("mongoose");
+const mongoose = require('mongoose');
+require('dotenv').config({path : "config/.env"})
 
-async function connectMongoDb(url){
-    return mongoose.connect(url,{useNewUrlParser: true, useUnifiedTopology: true});
-}
+const connectDB = async ()=>{
+    await mongoose.connect(process.env.URI);
+    console.log('MongoDB Database is Connected to: cluster0');
+};
 
-module.exports={
-    connectMongoDb,
-}
+module.exports = connectDB;
