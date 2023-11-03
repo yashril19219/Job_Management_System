@@ -5,6 +5,7 @@ var bodyParser = require('body-parser')
 require('dotenv').config({path : "config/.env"});
 const jobRouter=require("./routes/job");
 const jobReviewRouter=require("./routes/jobReview");
+const userRoutes = require('./routes/user.js');
 
 const app = express();
 
@@ -32,8 +33,7 @@ connectDB(process.env.MONGODB_CONNECTION_URL)
 
 app.use("/job",jobRouter);
 app.use("/job-review",jobReviewRouter)
-
-
+app.use('/', userRoutes);
 
 
 

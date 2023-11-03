@@ -24,7 +24,10 @@ const jobReviewSchema= new Schema({
     }
 },{timestamps:true})
 
+
 const JobReview=mongoose.model('JobReview',jobReviewSchema);
 
 
+
 module.exports=JobReview;
+

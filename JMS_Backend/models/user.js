@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const {Schema} = mongoose;
  
 const userSchema = new Schema({
-    userName: {
+    username: {
         type : String,
         required : true
     },
@@ -21,9 +21,11 @@ const userSchema = new Schema({
         enum: ['User','SuperAdmin','Admin','Moderator','JobManager'],
         default : "User"
     }
+
 },{timestamps:true});
  
  
 const User= mongoose.model('User',userSchema);
  
 module.exports = {User};
+
