@@ -174,7 +174,7 @@ const changeRole = async (req,res)=>{
     const {newRole} = req.body;
     const id = req.params.id;
     try {
-        const user = await userModel.updateOne({_id:id}, {$set : {role : newRole}});
+        await userModel.updateOne({_id:id}, {$set : {role : newRole}});
         return res.status(200).send({success : true, message : `successfully changed user role with user id : ${id} to ${newRole}`})
     } catch (error) {
         return res.status(400).send({success : false, message : `Could not change role of user with id ${id}`, error : error});
