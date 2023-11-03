@@ -2,7 +2,8 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const jobSchema= new Schema({
-    tittle:{
+
+    title:{
         type: String,
         required: true,
     },
@@ -16,7 +17,9 @@ const jobSchema= new Schema({
         default:'Pending',
         required: true
     }
-})
+
+},{timestamps:true})
+
 
 const Job=mongoose.model('Job',jobSchema);
 
