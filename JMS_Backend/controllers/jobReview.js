@@ -1,19 +1,100 @@
 const JobReview=require("../models/jobReview");
 
 async function handleGetJobReview(req,res){
+    let id=req.query.id;
+    let status=req.query.status;
+    let createdBy=req.query.createdBy;
+
+    if(id){
+        JobReview.findById(id)
+        .then((jobreview)=>{
+            if(!jobreview){
+                res.send({msg:'No Job Review found'});
+                return ;
+            }
+            res.send(jobreview);
+        })
+        .catch((err)=>{
+            console.log(err);
+            res.send({msg:'Error finding Job Review'});
+        })
+
+        return ;
+    }
+
+    if(!status && createdBy){
+        JobReview.find({createdBy:createdBy})
+        .then((jobreview)=>{
+            if(!jobreview){
+                res.send({msg:'No Job Review found'});
+                return ;
+            }
+            res.send(jobreview);
+        })
+        .catch((err)=>{
+            console.log(err);
+            res.send({msg:'Error finding Job Review'});
+        })
+
+        return ;
+    }
+
+    if(status && !createdBy){
+        JobReview.find({status:status})
+        .then((jobreview)=>{
+            if(!jobreview){
+                res.send({msg:'No Job Review found'});
+                return ;
+            }
+            res.send(jobreview);
+        })
+        .catch((err)=>{
+            console.log(err);
+            res.send({msg:'Error finding Job Review'});
+        })
+
+        return ;
+    }
+
+    if(status && createdBy){
+        JobReview.find({status:status,createdBy:createdBy})
+        .then((jobreview)=>{
+            if(!jobreview){
+                res.send({msg:'No Job Review found'});
+                return ;
+            }
+            res.send(jobreview);
+        })
+        .catch((err)=>{
+            console.log(err);
+            res.send({msg:'Error finding Job Review'});
+        })
+
+        return ;
+    }
+
+    JobReview.find()
+    .then((jobreview)=>{
+        res.send(jobreview);
+    })
+    .catch((err)=>{
+        res.send({msg:'Error finding Job Review'});
+    })
     
 }
 
 async function handlePostJobReview(req,res){
-    let jobReviewId=req.body.jobReviewId;
+    let jobId=req.body.jobId;
+    let createdBy=req.body.createdBy;
 
-    if(!jobReviewId){
+    if(!jobId){
         res.send('Invalid body parameters');
         return ;
     }
 
     const jobReview=new JobReview({
-        job:jobReviewId
+        job:jobId,
+        createdBy:createdBy
     });
 
     jobReview.save()
@@ -65,7 +146,22 @@ async function handleUpdateJobReview(req,res){
 }
 
 async function handleDeleteJobReview(req,res){
-    
+    let id=req.params.id;
+
+    if(!id){
+        res.send({msg:'Invalid parameter'});
+        return ;
+    }
+
+    JobReview.findByIdAndDelete(id)
+    .then(()=>{
+        res.send({msg:"Review deleted successfully"});
+    })
+    .catch((err)=>{
+        res.send({msg:"Error deleting the review"})
+    })
+
+
 }
 
 module.exports={

@@ -6,6 +6,10 @@ router.route("/")
 .get(handleGetJobReview)
 .post(handlePostJobReview);
 
+router.route("/:id")
+.patch(handleUpdateJobReview)
+.delete(handleDeleteJobReview);
+
 
 
 
