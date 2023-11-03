@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt');
 const {hashPassword, comparePasswords} = require('./passHash');
 const userModel = require('../models/user');
 const { json } = require('body-parser');
+const { set } = require('mongoose');
 require('dotenv').config({path : "../config/.env"});
 
 //checking if email is valid using regex matching,
@@ -50,8 +51,7 @@ const saveUser = async (username, email, password) =>{
         await userModel({
             username : username,
             email : email,
-            password: hashedPassword,
-            role : "Admin"
+            password: hashedPassword
         }).save();
 
         //returning if we have successfully saved the models
@@ -160,5 +160,27 @@ const getUsers  = async(req,res)=>{
     }
 }
 
-module.exports = {login, register,getUsers};
+const getUser = async (req,res) =>{
+    const id = req.params.id;
+    try {
+        const data = await userModel.findOne({_id: id});
+        return res.status(200).send(data);
+    } catch (error) {
+        return res.status(400).send({success : false, message : `Could not get user with id ${id}`, error : error});
+    }
+}
+
+const changeRole = async (req,res)=>{
+    const {newRole} = req.body;
+    const id = req.params.id;
+    try {
+        const user = await userModel.updateOne({_id:id}, {$set : {role : newRole}});
+        return res.status(200).send({success : true, message : `successfully changed user role with user id : ${id} to ${newRole}`})
+    } catch (error) {
+        return res.status(400).send({success : false, message : `Could not change role of user with id ${id}`, error : error});
+    }
+}
+
+
+module.exports = {login, register,getUsers,getUser,changeRole};
 
