@@ -62,7 +62,7 @@ const takeAction = async (req,res) => {
     try {
         await jobRequestModel.updateOne({_id : id},{status : newStatus});
         
-        return res.status(203).send({success : true, message : `JobRequest with id ${id} has been ${newStatus}`});
+        return res.status(200).send({success : true, message : `JobRequest with id ${id} has been ${newStatus}`});
     } catch (error) {
         return res.status(500).json({success : false, message: "Internal error has been occured", "error" : error});
         
