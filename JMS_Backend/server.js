@@ -6,6 +6,7 @@ require('dotenv').config({path : "config/.env"});
 const jobRouter=require("./routes/job");
 const jobReviewRouter=require("./routes/jobReview");
 const userRoutes = require('./routes/user.js');
+const JobRequest = require('./routes/jobRequest.js');
 
 const app = express();
 
@@ -34,6 +35,4 @@ connectDB(process.env.MONGODB_CONNECTION_URL)
 app.use("/job",jobRouter);
 app.use("/job-review",jobReviewRouter)
 app.use('/', userRoutes);
-
-
-
+app.use("/job", JobRequest);
