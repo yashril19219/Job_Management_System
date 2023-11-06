@@ -1,10 +1,24 @@
 const Job=require("../models/job");
+const redisController=require("./redis");
 
 async function handleGetJob(req,res){
     let jobid=req.query.jobid;
     let title=req.query.title;
 
     if(jobid){
+
+        const cacheKey = `jobId:${jobid}`;
+
+        const result= await redisController.getFromCache(cacheKey);
+
+        if(result.status=='HIT'){
+            console.log('CACHE HIT.....');
+            res.send(JSON.parse(result.data));
+            return ;
+        }
+
+        console.log('CACHE MISS......');
+
         Job.findById(jobid)
         .then((job)=>{
             if(!job){
@@ -12,6 +26,8 @@ async function handleGetJob(req,res){
                 return ;
             }
             res.send(job);
+
+            redisController.setIntoCache(cacheKey,JSON.stringify(job));
         })
         .catch((err)=>{
             console.log(err);
@@ -41,9 +57,21 @@ async function handleGetJob(req,res){
         return ;
     }
 
+    const result= await redisController.getFromCache('allJobs');
+
+    if(result.status=='HIT'){
+        console.log('CACHE HIT.....');
+        res.send(JSON.parse(result.data));
+        return ;
+    }
+
+    console.log('CACHE MISS......');
+
     Job.find()
     .then((jobs)=>{
         res.send(jobs);
+
+        redisController.setIntoCache('allJobs',JSON.stringify(jobs));
     })
     .catch((err)=>{
         res.send({msg:'Error getting all jobs'})
@@ -67,6 +95,8 @@ async function handlePostJob(req,res){
     job.save()
     .then((job)=>{
         res.send({msg:'Job created successfully'});
+
+        redisController.deleteFromCache('allJobs');
     })
     .catch((err)=>{
         console.log(err);
@@ -79,14 +109,13 @@ async function handleUpdateJob(req,res){
     let jobid=req.params.id;
     let title=req.body.title;
     let description=req.body.description;
-    let status=req.body.status;
 
     if(!jobid){
         res.send({msg:'Invalid parameter'});
         return ;
     }
 
-    if(!title && !description && !status){
+    if(!title && !description){
         res.send({msg:'Invalid body parameters'});
         return ;
     }
@@ -99,13 +128,14 @@ async function handleUpdateJob(req,res){
         if(description){
             job.description=description;
         }
-        if(status){
-            job.status=status;
-        }
-    
+        
         job.save()
         .then((task)=>{
             res.send({'msg':'Successfully updated the job'});
+
+            const cacheKey = `jobId:${jobid}`;
+            redisController.deleteFromCache('allJobs');
+            redisController.deleteFromCache(cacheKey);
             return;
         })
         .catch((err)=>{
@@ -117,8 +147,22 @@ async function handleUpdateJob(req,res){
 
 }
 
+async function handleDeleteJob(req,res){
+    let jobid=req.params.id;
+
+    Job.findByIdAndDelete(jobid)
+    .then(()=>{
+        res.send({msg:"Job deleted"});
+
+        const cacheKey = `jobId:${jobid}`;
+        redisController.deleteFromCache('allJobs');
+        redisController.deleteFromCache(cacheKey);
+    })
+}
+
 module.exports={
     handleGetJob,
     handlePostJob,
-    handleUpdateJob
+    handleUpdateJob,
+    handleDeleteJob
 }

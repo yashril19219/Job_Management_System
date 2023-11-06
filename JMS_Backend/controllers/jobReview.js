@@ -1,4 +1,7 @@
 const JobReview=require("../models/jobReview");
+const redisController=require("./redis");
+const Job=require("../models/job");
+
 
 async function handleGetJobReview(req,res){
     let id=req.query.id;
@@ -6,6 +9,19 @@ async function handleGetJobReview(req,res){
     let createdBy=req.query.createdBy;
 
     if(id){
+
+        const cacheKey = `jobReviewId:${id}`;
+
+        const result= await redisController.getFromCache(cacheKey);
+
+        if(result.status=='HIT'){
+            console.log('CACHE HIT.....');
+            res.send(JSON.parse(result.data));
+            return ;
+        }
+
+        console.log('CACHE MISS......');
+
         JobReview.findById(id)
         .then((jobreview)=>{
             if(!jobreview){
@@ -13,6 +29,9 @@ async function handleGetJobReview(req,res){
                 return ;
             }
             res.send(jobreview);
+
+            redisController.setIntoCache(cacheKey,JSON.stringify(jobreview));
+
         })
         .catch((err)=>{
             console.log(err);
@@ -40,6 +59,19 @@ async function handleGetJobReview(req,res){
     }
 
     if(status && !createdBy){
+
+        const cacheKey = `jobReviewStatus:${status}`;
+
+        const result= await redisController.getFromCache(cacheKey);
+
+        if(result.status=='HIT'){
+            console.log('CACHE HIT.....');
+            res.send(JSON.parse(result.data));
+            return ;
+        }
+
+        console.log('CACHE MISS......');
+
         JobReview.find({status:status})
         .then((jobreview)=>{
             if(!jobreview){
@@ -47,6 +79,8 @@ async function handleGetJobReview(req,res){
                 return ;
             }
             res.send(jobreview);
+
+            redisController.setIntoCache(cacheKey,JSON.stringify(jobreview));
         })
         .catch((err)=>{
             console.log(err);
@@ -73,9 +107,23 @@ async function handleGetJobReview(req,res){
         return ;
     }
 
+    const cacheKey = 'alljobReview';
+
+    const result= await redisController.getFromCache(cacheKey);
+
+    if(result.status=='HIT'){
+        console.log('CACHE HIT.....');
+        res.send(JSON.parse(result.data));
+        return ;
+    }
+
+    console.log('CACHE MISS......');
+
     JobReview.find()
     .then((jobreview)=>{
         res.send(jobreview);
+
+        redisController.setIntoCache(cacheKey,JSON.stringify(jobreview));
     })
     .catch((err)=>{
         res.send({msg:'Error finding Job Review'});
@@ -100,6 +148,10 @@ async function handlePostJobReview(req,res){
     jobReview.save()
     .then((jobReview)=>{
         res.send({msg:'Job Review request created successfully'});
+
+        const cacheKey = 'jobReviewStatus:Pending';
+        redisController.deleteFromCache('alljobReview');
+        redisController.deleteFromCache(cacheKey);
     })
     .catch((err)=>{
         console.log(err);
@@ -129,13 +181,42 @@ async function handleUpdateJobReview(req,res){
 
     JobReview.findById(id)
     .then((jobReview)=>{
+
+        let prevStatus=jobReview.status;
+
         jobReview.reviewer=reviewer;
         jobReview.status=status;
     
         jobReview.save()
         .then((jobReview)=>{
-            res.send({'msg':'Successfully updated the Job Review'});
-            return;
+            Job.findById(jobReview.job._id)
+            .then((job)=>{
+                job.status=status;
+                job.save()
+                .then(()=>{
+                    res.send({'msg':'Successfully updated the Job Review'});
+                    let cacheKey = `jobReviewStatus:${prevStatus}`;
+                    redisController.deleteFromCache(cacheKey);
+                    cacheKey = `jobReviewStatus:${status}`;
+                    redisController.deleteFromCache(cacheKey);
+                    redisController.deleteFromCache('alljobReview');
+                    cacheKey = `jobId:${job._id}`;
+                    redisController.deleteFromCache('allJobs');
+                    redisController.deleteFromCache(cacheKey);
+                    
+                })
+                .catch((err)=>{
+                    console.log('Error in saving job!!!!!!!!!!',err);
+                    res.send({msg:"Something went wrong!!"})
+                    return;
+                })
+            })
+            .catch((err)=>{
+                console.log('Error!!!!!!!',err);
+                res.send({msg:"Something went wrong!!"})
+                return;
+            })
+            
         })
         .catch((err)=>{
             console.log(err);
@@ -154,8 +235,12 @@ async function handleDeleteJobReview(req,res){
     }
 
     JobReview.findByIdAndDelete(id)
-    .then(()=>{
+    .then((jobreview)=>{
         res.send({msg:"Review deleted successfully"});
+
+        let cacheKey = `jobReviewStatus:${jobreview.status}`;
+        redisController.deleteFromCache(cacheKey);
+        redisController.deleteFromCache('alljobReview');
     })
     .catch((err)=>{
         res.send({msg:"Error deleting the review"})

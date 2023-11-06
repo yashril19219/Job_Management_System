@@ -1,14 +1,15 @@
 const express= require('express');
 const router= express.Router();
 const {handleGetJobReview,handlePostJobReview,handleUpdateJobReview,handleDeleteJobReview} = require('../controllers/jobReview');
+const auth = require('../middlewares/auth.js');
 
 router.route("/")
-.get(handleGetJobReview)
-.post(handlePostJobReview);
+.get(auth(['SuperAdmin','Admin','Moderator','Manager']),handleGetJobReview)
+.post(auth(['SuperAdmin','Admin','Moderator','Manager']),handlePostJobReview);
 
 router.route("/:id")
-.patch(handleUpdateJobReview)
-.delete(handleDeleteJobReview);
+.patch(auth(['SuperAdmin','Manager']),handleUpdateJobReview)
+.delete(auth(['SuperAdmin','Manager','Moderator']),handleDeleteJobReview);
 
 
 
