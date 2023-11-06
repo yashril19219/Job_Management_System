@@ -6,7 +6,7 @@ const userModel = require('../models/user');
 const { json } = require('body-parser');
 const { set } = require('mongoose');
 require('dotenv').config({path : "../config/.env"});
-
+const {getFromCatch,deleteKey, saveInCatch} = require('../connections/redis');
 //checking if email is valid using regex matching,
 //source : stackoverflow,  https://stackoverflow.com/questions/46155/how-can-i-validate-an-email-address-in-javascript
 const validateEmail = (email) => {
@@ -90,6 +90,8 @@ const register = async (req,res)=>{
 
         saveUser(username, email,password);
 
+        deleteKey('users');
+
         //returning 201 status code as user is created
         return res.status(201).send({success : true , message : "User registered successfully"});
     } catch (error) {
@@ -151,11 +153,16 @@ const login = async (req,res)=>{
 const getUsers  = async(req,res)=>{
     
     try {
+        const cacheData = await getFromCatch('users');
+
+        if(cacheData.status=='CACHE HIT'){
+            return res.status(200).send(cacheData.data);
+        }
         const data = await userModel.find();
+        saveInCatch('users',data);
         return res.status(200).send(data);
 
     } catch (error) {
-        //error message, if failed fetching from database
         return res.status(400).send({success : false, message : "Cannot fetch users",error : error});
     }
 }
@@ -163,7 +170,12 @@ const getUsers  = async(req,res)=>{
 const getUser = async (req,res) =>{
     const id = req.params.id;
     try {
+        const cacheData = await getFromCatch('user'+id);
+        if(cacheData.status=='CACHE HIT'){
+            return res.status(200).send(cacheData.data);
+        }
         const data = await userModel.findOne({_id: id});
+        saveInCatch('user'+id,data);
         return res.status(200).send(data);
     } catch (error) {
         return res.status(400).send({success : false, message : `Could not get user with id ${id}`, error : error});
@@ -175,6 +187,8 @@ const changeRole = async (req,res)=>{
     const id = req.params.id;
     try {
         await userModel.updateOne({_id:id}, {$set : {role : newRole}});
+        deleteKey('user'+id);
+        deleteKey('users');
         return res.status(200).send({success : true, message : `successfully changed user role with user id : ${id} to ${newRole}`})
     } catch (error) {
         return res.status(400).send({success : false, message : `Could not change role of user with id ${id}`, error : error});

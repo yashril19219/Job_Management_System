@@ -2,7 +2,7 @@ const jobRequestModel = require('../models/jobRequest');
 const jobModel = require('../models/job');
 const userModel = require('../models/user');
 const jwt = require('jsonwebtoken');
-
+const {getFromCatch, saveInCatch,deleteKey} = require('../connections/redis');
 
 const apply = async (req,res)=>{
 
@@ -31,6 +31,8 @@ const apply = async (req,res)=>{
             status : "Pending"
         }).save();
         console.log(typeof job._id);
+
+        deleteKey(userID + 'jobRequests');
         res.status(201).json({success : true, message : `You have successfully applied for job with id ${id}`});
 
     } catch (error) {
@@ -41,8 +43,18 @@ const apply = async (req,res)=>{
 const getJobRequests = async (req,res)=>{
 
     try {
-        const data = await jobRequestModel.find();
-        console.log(data);
+
+        const userID = await jwt.verify(req.cookies.jwt, process.env.JWT_SECRET_TOKEN).userID;
+        const cacheData = await getFromCatch(userID + 'jobRequests');
+        let data;
+        
+        if(cacheData.status=='CACHE HIT'){
+            data=cacheData.data;
+        }else{ 
+            data = await jobRequestModel.find();
+            saveInCatch(userID + 'jobRequests', data);
+        }
+        
         if(!data){
             return res.status(200).json({message : "No Job Requests at this moment"});
         }
@@ -61,7 +73,10 @@ const takeAction = async (req,res) => {
 
     try {
         await jobRequestModel.updateOne({_id : id},{status : newStatus});
-        
+
+        const userID = await jwt.verify(req.cookies.jwt, process.env.JWT_SECRET_TOKEN).userID;
+        deleteKey(userID + 'jobRequests');
+
         return res.status(200).send({success : true, message : `JobRequest with id ${id} has been ${newStatus}`});
     } catch (error) {
         return res.status(500).json({success : false, message: "Internal error has been occured", "error" : error});
