@@ -6,15 +6,19 @@ require('dotenv').config({path : "config/.env"});
 const jobRouter=require("./routes/job");
 const jobReviewRouter=require("./routes/jobReview");
 const userRoutes = require('./routes/user.js');
+const emailRoutes = require('./routes/email.js');
 const JobRequest = require('./routes/jobRequest.js');
-
 const app = express();
+const consume = require('./middlewares/consume.js');
 
 
 //Middlewares
 app.use(cookieParser())
 app.use(express.json());
 app.use(bodyParser.json());
+
+consume();
+
 
 //server config
 PORT = process.env.JMS_SERVER_PORT || 5000;
@@ -36,3 +40,6 @@ app.use("/job",jobRouter);
 app.use("/job-review",jobReviewRouter)
 app.use('/', userRoutes);
 app.use("/job", JobRequest);
+app.use('/', emailRoutes);
+
+

@@ -7,6 +7,8 @@ const { json } = require('body-parser');
 const { set } = require('mongoose');
 require('dotenv').config({path : "../config/.env"});
 const {getFromCatch,deleteKey, saveInCatch} = require('../connections/redis');
+const publishMessage = require('../connections/rabbitmq');
+
 //checking if email is valid using regex matching,
 //source : stackoverflow,  https://stackoverflow.com/questions/46155/how-can-i-validate-an-email-address-in-javascript
 const validateEmail = (email) => {
@@ -91,7 +93,12 @@ const register = async (req,res)=>{
         saveUser(username, email,password);
 
         deleteKey('users');
-
+        
+        const msg = {
+            "email" : email,
+            "message" : `Hi ${username}, You have been successfully registered to job management system`
+        }
+        await publishMessage(msg);
         //returning 201 status code as user is created
         return res.status(201).send({success : true , message : "User registered successfully"});
     } catch (error) {
