@@ -7,8 +7,7 @@ const { json } = require('body-parser');
 const { set } = require('mongoose');
 require('dotenv').config({path : "../config/.env"});
 const {getFromCatch,deleteKey, saveInCatch} = require('../connections/redis');
-const publishMessage = require('../connections/rabbitmq');
-
+const {sendMessage} = require("./rabbitmq");
 //checking if email is valid using regex matching,
 //source : stackoverflow,  https://stackoverflow.com/questions/46155/how-can-i-validate-an-email-address-in-javascript
 const validateEmail = (email) => {
@@ -53,7 +52,8 @@ const saveUser = async (username, email, password) =>{
         await userModel({
             username : username,
             email : email,
-            password: hashedPassword
+            password: hashedPassword,
+            role:"User"
         }).save();
 
         //returning if we have successfully saved the models
@@ -90,15 +90,19 @@ const register = async (req,res)=>{
         }
         //if all the validation are true, then we can save our user to the dataabse;
 
-        saveUser(username, email,password);
-
+    
+        await saveUser(username, email,password);
         deleteKey('users');
-        
-        const msg = {
-            "email" : email,
-            "message" : `Hi ${username}, You have been successfully registered to job management system`
+        const message={
+            emails:[email],
+            content:{
+                message: `You have successfully register to job management system with username ${username}`
+            }
         }
-        await publishMessage(msg);
+
+        await sendMessage(message,'Register');
+
+
         //returning 201 status code as user is created
         return res.status(201).send({success : true , message : "User registered successfully"});
     } catch (error) {
