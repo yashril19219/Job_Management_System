@@ -1,7 +1,8 @@
 const JobReview=require("../models/jobReview");
 const redisController=require("./redis");
 const Job=require("../models/job");
-
+const User=require("../models/user");
+const {sendMessage} = require("./rabbitmq");
 
 async function handleGetJobReview(req,res){
     let id=req.query.id;
@@ -191,10 +192,30 @@ async function handleUpdateJobReview(req,res){
         .then((jobReview)=>{
             Job.findById(jobReview.job._id)
             .then((job)=>{
+
                 job.status=status;
                 job.save()
-                .then(()=>{
+                .then((job)=>{
                     res.send({'msg':'Successfully updated the Job Review'});
+                    
+                    
+                    let emails=[]
+                    User.findById(jobReview.createdBy._id)
+                    .then((user)=>{
+                        emails.push(user.email);
+
+                        const message={
+                            emails:emails,
+                            content:{
+                                status:status,
+                                title:job.title
+                            }
+                        }
+                        sendMessage(message,'JobReview');
+                    })
+
+                    
+
                     let cacheKey = `jobReviewStatus:${prevStatus}`;
                     redisController.deleteFromCache(cacheKey);
                     cacheKey = `jobReviewStatus:${status}`;
