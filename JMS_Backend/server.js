@@ -10,7 +10,17 @@ const emailRoutes = require('./routes/email.js');
 const JobRequest = require('./routes/jobRequest.js');
 const app = express();
 const consume = require('./middlewares/consume.js');
+const rateLimit = require('express-rate-limit');
 
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 20, // limit each IP to 100 requests per windowMs
+    message: {message : "To many requests please try again later"},
+});
+  
+// Apply the rate limiter to a specific route
+app.use(limiter);
+  
 
 //Middlewares
 app.use(cookieParser())
