@@ -9,7 +9,6 @@ const userRoutes = require('./routes/user.js');
 const emailRoutes = require('./routes/email.js');
 const JobRequest = require('./routes/jobRequest.js');
 const app = express();
-const consume = require('./middlewares/consume.js');
 const rateLimit = require('express-rate-limit');
 
 const limiter = rateLimit({
@@ -26,8 +25,6 @@ app.use(limiter);
 app.use(cookieParser())
 app.use(express.json());
 app.use(bodyParser.json());
-
-consume();
 
 
 //server config
