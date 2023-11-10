@@ -2,7 +2,7 @@ const JobReview=require("../models/jobReview");
 const redisController=require("./redis");
 const Job=require("../models/job");
 const User=require("../models/user");
-const {sendMessage} = require("./rabbitmq");
+const rabbitmqController = require("./rabbitmq");
 
 async function handleGetJobReview(req,res){
     let id=req.query.id;
@@ -211,7 +211,11 @@ async function handleUpdateJobReview(req,res){
                                 title:job.title
                             }
                         }
-                        sendMessage(message,'JobReview');
+                        rabbitmqController.sendMessage(message,'JobReview');
+
+                        if(status=='Approved'){
+                            rabbitmqController.jobAdded(job,'Job');
+                        }
                     })
 
                     

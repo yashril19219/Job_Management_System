@@ -14,11 +14,13 @@ async function listenToQueue(queueName) {
   const prefetchCount = 1; // Set your desired limit
   channel.prefetch(prefetchCount);
 
-  channel.consume(queueName, (msg) => {
+  channel.consume(queueName, async (msg) => {
     
     console.log(`Received message from ${queueName}:`);
 
     const message=JSON.parse(msg.content.toString());
+
+    console.log(message);
 
   
     if(queueName=='JobReview'){
@@ -26,20 +28,20 @@ async function listenToQueue(queueName) {
 
       var body=`Your job review request for job: ${message.content.title} has been reviewed:\n\nStatus: ${message.content.status}`
 
+      console.log('emails: ',message.emails);      
       
-      //sendEmail(message.email,{subject:subject,body:body});
+      //await sendEmail(message.emails,{subject:subject,body:body});
 
+    } 
+
+    else if(queueName='Job'){
+      var subject='A new job has been added!';
+      var body=`Hi,\nA new job has been added:\n\nTitle: ${message.content.title}\nDescription: ${message.content.description}`;
+
+      //await sendEmail(message.emails,{subject:subject,body:body});
     }
-
-    setTimeout(()=>{
-      console.log('completed');
-      channel.ack(msg);
-    },5000)
-
-
     
-  
-
+    channel.ack(msg);
     
   });
 

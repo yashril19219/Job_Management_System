@@ -1,30 +1,39 @@
 const {connectRabbitmq} = require('../connections/rabbitmq');
 require('dotenv').config({path : "config/.env"});
 
+const User=require('../models/user');
 
-async function sendMessage(message,queue){
+const redisController =require('./redis');
+
+async function sendInBatch(emails,content,batchSize,queueName){
+    const connection=await connectRabbitmq(process.env.RABBITMQ_CONNECTION_URL);
+
+    const channel=await connection.createChannel();
+    
+    channel.assertQueue(queueName,{durable: false});
+
+    for (let i = 0; i < emails.length; i += batchSize) {
+        const batch = emails.slice(i, i + batchSize);
+        const mess={'content':content,'emails':batch};
+        channel.sendToQueue(queueName, Buffer.from(JSON.stringify(mess)));
+    }
+
+    await channel.close();
+    await connection.close();
+
+}
+
+
+async function sendMessage(message,queueName){
+    console.log('Received req for: ',queueName);
     try{
-        const connection=await connectRabbitmq(process.env.RABBITMQ_CONNECTION_URL);
-
-        const channel=await connection.createChannel();
-
-        let queueName=queue;
-        
-        channel.assertQueue(queueName,{durable: false});
-        const prefetchCount = 1; // Set your desired limit
-        channel.prefetch(prefetchCount);
-
         let emails=message.emails;
 
         let content=message.content;
 
-        for(let email of emails){
-            const mess={'content':content,'email':email};
-            channel.sendToQueue(queueName,Buffer.from(JSON.stringify(mess)));
-        }
-
-
-              
+    
+        sendInBatch(emails,content,10,queueName);
+     
 
     }
     catch(error){
@@ -33,4 +42,38 @@ async function sendMessage(message,queue){
 }
 
 
-module.exports={sendMessage};
+async function jobAdded(job,queueName){
+
+    setname='Job:Subscription:alljobs';
+
+    const result= await redisController.getMembersOfSet(setname);
+
+    if(result.status=='HIT'){
+        console.log('Cache HIT');
+        console.log(result.data);
+    }
+    else{
+        console.log('Cache MISS');
+    }
+
+
+    const users=await User.find();
+
+    var emails=users.map(user=>user.email);
+
+    let content={
+        title:job.title,
+        description:job.description,
+    }
+
+    sendInBatch(emails,content,10,queueName);
+
+    if(result.status=='MISS'){
+        redisController.addMembersToSet(setname,emails);
+    }
+    
+
+}
+
+
+module.exports={sendMessage,jobAdded};

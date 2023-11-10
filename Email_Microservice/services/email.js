@@ -1,7 +1,7 @@
 var nodemailer =require('nodemailer');
 require('dotenv').config({path : "config/.env"});
 
-async function sendEmail(email,content){
+async function sendEmail(emails,content){
     var transporter = nodemailer.createTransport({
         service: process.env.SERVICE,
         auth: {
@@ -16,7 +16,7 @@ async function sendEmail(email,content){
 
       var mailOptions = {
         from: process.env.MAIL_USER,
-        to: email,
+        to: emails,
         subject: subject,
         text: text
       };
@@ -24,10 +24,8 @@ async function sendEmail(email,content){
     transporter.sendMail(mailOptions, function(error, info){
         if (error) {
             console.log(error);
-            return {status:"Fail",error:error};
         } 
         else {
-            return {status:"Success"};
             console.log('Email sent: ' + info.response);
         }
       });
