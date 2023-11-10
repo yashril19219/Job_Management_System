@@ -18,9 +18,6 @@ async function sendInBatch(emails,content,batchSize,queueName){
         channel.sendToQueue(queueName, Buffer.from(JSON.stringify(mess)));
     }
 
-    await channel.close();
-    await connection.close();
-
 }
 
 

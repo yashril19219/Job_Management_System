@@ -33,7 +33,7 @@ const apply = async (req,res)=>{
         }).save();
         console.log(typeof job._id);
 
-        deleteKey(userID + 'jobRequests');
+        deleteKey('jobRequests');
         res.status(201).json({success : true, message : `You have successfully applied for job with id ${id}`});
 
     } catch (error) {

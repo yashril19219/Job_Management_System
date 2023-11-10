@@ -93,6 +93,7 @@ const register = async (req,res)=>{
     
         await saveUser(username, email,password);
         deleteKey('users');
+        
         const message={
             emails:[email],
             content:{

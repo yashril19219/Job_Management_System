@@ -20,6 +20,8 @@ async function sendEmail(emails,content){
         text: text
       };
       
+    
+      console.log(emails);
     transporter.sendMail(mailOptions, function(error, info){
         if (error) {
             console.log(error);

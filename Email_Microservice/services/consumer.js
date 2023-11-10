@@ -30,20 +30,22 @@ async function listenToQueue(queueName) {
 
       console.log('emails: ',message.emails);      
 
-      sendEmail(message.email,{subject:subject,body:body});
+      sendEmail(message.emails,{subject:subject,body:body});
 
       channel.ack(msg);
     }
     else if(queueName =='Register'){
       console.log('sending mail');
-      sendEmail(message.email, {subject : "Registration successfull", body : message.content.message});
+      console.log(message);
+      console.log(message.emails);
+      sendEmail(message.emails, {subject : "Registration successfull", body : message.content.message});
       console.log('mail sent successfully');
       channel.ack(msg);
     }
     
     else if(queueName =="JobRequest"){
       console.log('sending mail');
-      sendEmail(message.email, {subject : "Action Taken on your application", body : message.content.message});
+      sendEmail(message.emails, {subject : "Action Taken on your application", body : message.content.message});
       console.log('mail sent successfully');
       channel.ack(msg);
     }
