@@ -31,11 +31,12 @@ async function sendMessage(message,queueName){
 
         let content=message.content;
 
+
     
         sendInBatch(emails,content,10,queueName);
      
-
     }
+  
     catch(error){
         console.log(error);
     }

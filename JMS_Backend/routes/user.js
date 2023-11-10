@@ -4,6 +4,7 @@ const router = express.Router();
 const userControl = require("../controllers/user.js");
 const auth = require('../middlewares/auth.js');
 
+
 router.post('/register',userControl.register);
 router.post('/login',userControl.login);
 router.get('/users',auth(['SuperAdmin','Admin']), userControl.getUsers);

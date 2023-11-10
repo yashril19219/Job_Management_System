@@ -3,6 +3,7 @@ const jobModel = require('../models/job');
 const userModel = require('../models/user');
 const jwt = require('jsonwebtoken');
 const {getFromCatch, saveInCatch,deleteKey} = require('../connections/redis');
+const {sendMessage} = require("./rabbitmq");
 
 const apply = async (req,res)=>{
 
@@ -44,15 +45,14 @@ const getJobRequests = async (req,res)=>{
 
     try {
 
-        const userID = await jwt.verify(req.cookies.jwt, process.env.JWT_SECRET_TOKEN).userID;
-        const cacheData = await getFromCatch(userID + 'jobRequests');
+        const cacheData = await getFromCatch('jobRequests');
         let data;
         
         if(cacheData.status=='CACHE HIT'){
             data=cacheData.data;
         }else{ 
             data = await jobRequestModel.find();
-            saveInCatch(userID + 'jobRequests', data);
+            saveInCatch('jobRequests', data);
         }
         
         if(!data){
@@ -73,9 +73,20 @@ const takeAction = async (req,res) => {
 
     try {
         await jobRequestModel.updateOne({_id : id},{status : newStatus});
+        const requestDetails = await jobRequestModel.findOne({_id : id});
+        const applicantID = (requestDetails.applicant).toString();
+        const userDetails = await userModel.findOne({_id: applicantID});
+        const email = userDetails.email.toString();
+        deleteKey('jobRequests');
 
-        const userID = await jwt.verify(req.cookies.jwt, process.env.JWT_SECRET_TOKEN).userID;
-        deleteKey(userID + 'jobRequests');
+        const message={
+            emails:[email],
+            content:{
+                message: `You job request has been with id : ${id},  has been ${newStatus}`
+            }
+        }
+
+        await sendMessage(message,'JobRequest');
 
         return res.status(200).send({success : true, message : `JobRequest with id ${id} has been ${newStatus}`});
     } catch (error) {

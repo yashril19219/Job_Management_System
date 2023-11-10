@@ -29,19 +29,36 @@ async function listenToQueue(queueName) {
       var body=`Your job review request for job: ${message.content.title} has been reviewed:\n\nStatus: ${message.content.status}`
 
       console.log('emails: ',message.emails);      
-      
-      //await sendEmail(message.emails,{subject:subject,body:body});
 
-    } 
+      sendEmail(message.email,{subject:subject,body:body});
+
+      channel.ack(msg);
+    }
+    else if(queueName =='Register'){
+      console.log('sending mail');
+      sendEmail(message.email, {subject : "Registration successfull", body : message.content.message});
+      console.log('mail sent successfully');
+      channel.ack(msg);
+    }
+    
+    else if(queueName =="JobRequest"){
+      console.log('sending mail');
+      sendEmail(message.email, {subject : "Action Taken on your application", body : message.content.message});
+      console.log('mail sent successfully');
+      channel.ack(msg);
+    }
+
 
     else if(queueName='Job'){
       var subject='A new job has been added!';
       var body=`Hi,\nA new job has been added:\n\nTitle: ${message.content.title}\nDescription: ${message.content.description}`;
 
-      //await sendEmail(message.emails,{subject:subject,body:body});
+      sendEmail(message.emails,{subject:subject,body:body});
+      channel.ack(msg);
     }
     
-    channel.ack(msg);
+    
+    
     
   });
 
