@@ -52,8 +52,8 @@ const saveUser = async (username, email, password) =>{
         await userModel({
             username : username,
             email : email,
-            password: hashedPassword,
-
+            password: hashedPassword
+            
         }).save();
 
         //returning if we have successfully saved the models

@@ -11,6 +11,8 @@ async function getFromCache(key){
 
     const data=await client.get(key);
 
+    client.quit();
+
     if(data!=null){
         return {'status':'HIT','data':data};
     }
@@ -25,7 +27,9 @@ async function setIntoCache(key,value){
     await client.connect().catch((err)=>{
         console.log('Error connecting to redis : ',err);
     });
-    await client.setEx(key,120,value);
+    await client.set(key,value);
+
+    client.quit();
 }
 
 async function deleteFromCache(key){
@@ -35,6 +39,43 @@ async function deleteFromCache(key){
     });
 
     await client.del(key);
+
+    client.quit();
+}
+
+
+async function getMembersOfSet(name){
+    const client=redis.createClient(process.env.REDIS_HOST,process.env.REDIS_PORT)
+    await client.connect().catch((err)=>{
+        console.log('Error connecting to redis : ',err);
+    });
+
+
+    const res=await client.exists(name);
+
+    if(res){
+        const members= await client.sMembers(name);
+
+        if(members!=null){
+            return {status:"HIT",data:members};
+        }
+    }
+
+    return {status:"MISS"};
+
+
+}
+
+
+async function addMembersToSet(name,members){
+    console.log('Adding members in set: ',name);
+    const client=redis.createClient(process.env.REDIS_HOST,process.env.REDIS_PORT)
+    await client.connect().catch((err)=>{
+        console.log('Error connecting to redis : ',err);
+    });
+
+    result=client.sAdd(name,members);      
+
 }
 
 // async function updateCache(key,value,operation){
@@ -71,5 +112,7 @@ async function deleteFromCache(key){
 module.exports={
     getFromCache,
     setIntoCache,
-    deleteFromCache
+    deleteFromCache,
+    getMembersOfSet,
+    addMembersToSet
 }
