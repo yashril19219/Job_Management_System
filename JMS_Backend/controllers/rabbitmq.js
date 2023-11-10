@@ -19,10 +19,12 @@ async function sendMessage(message,queue){
         let content=message.content;
 
         for(let email of emails){
-            console.log(email);
             const mess={'content':content,'email':email};
             channel.sendToQueue(queueName,Buffer.from(JSON.stringify(mess)));
         }
+
+
+              
     }
     catch(error){
         console.log(error);

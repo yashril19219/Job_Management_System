@@ -26,10 +26,12 @@ async function sendEmail(email,content){
             return {status:"Fail",error:error};
         } 
         else {
+
           console.log('Email sent: ' + info.response);
          
             return {status:"Success"};
          }
+
       });
 }
 

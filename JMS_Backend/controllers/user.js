@@ -53,7 +53,7 @@ const saveUser = async (username, email, password) =>{
             username : username,
             email : email,
             password: hashedPassword,
-            role:"User"
+
         }).save();
 
         //returning if we have successfully saved the models

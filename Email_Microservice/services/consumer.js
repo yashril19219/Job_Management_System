@@ -27,8 +27,9 @@ async function listenToQueue(queueName) {
       var body=`Your job review request for job: ${message.content.title} has been reviewed:\n\nStatus: ${message.content.status}`
 
       
-      //sendEmail(message.email,{subject:subject,body:body});
-      // channel.ack(msg);
+      sendEmail(message.email,{subject:subject,body:body});
+
+      channel.ack(msg);
     }
     else if(queueName =='Register'){
       console.log('sending mail');
@@ -43,6 +44,11 @@ async function listenToQueue(queueName) {
       console.log('mail sent successfully');
       channel.ack(msg);
     }
+
+
+    }
+
+    
     
   });
 
