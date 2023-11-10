@@ -27,19 +27,28 @@ async function listenToQueue(queueName) {
       var body=`Your job review request for job: ${message.content.title} has been reviewed:\n\nStatus: ${message.content.status}`
 
       
-      //sendEmail(message.email,{subject:subject,body:body});
+      sendEmail(message.email,{subject:subject,body:body});
+
+      channel.ack(msg);
+    }
+    else if(queueName =='Register'){
+      console.log('sending mail');
+      sendEmail(message.email, {subject : "Registration successfull", body : message.content.message});
+      console.log('mail sent successfully');
+      channel.ack(msg);
+    }
+    
+    else if(queueName =="JobRequest"){
+      console.log('sending mail');
+      sendEmail(message.email, {subject : "Action Taken on your application", body : message.content.message});
+      console.log('mail sent successfully');
+      channel.ack(msg);
+    }
+
 
     }
 
-    setTimeout(()=>{
-      console.log('completed');
-      channel.ack(msg);
-    },5000)
-
-
     
-  
-
     
   });
 

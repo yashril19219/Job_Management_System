@@ -13,7 +13,6 @@ async function sendEmail(email,content){
       var subject=content.subject;
       var text=content.body;
 
-
       var mailOptions = {
         from: process.env.MAIL_USER,
         to: email,
@@ -27,9 +26,12 @@ async function sendEmail(email,content){
             return {status:"Fail",error:error};
         } 
         else {
+
+          console.log('Email sent: ' + info.response);
+         
             return {status:"Success"};
-            console.log('Email sent: ' + info.response);
-        }
+         }
+
       });
 }
 

@@ -25,7 +25,6 @@ async function sendMessage(message,queue){
 
 
               
-
     }
     catch(error){
         console.log(error);
