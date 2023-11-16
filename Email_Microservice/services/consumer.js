@@ -38,7 +38,7 @@ async function listenToQueue(queueName) {
       console.log('sending mail');
       console.log(message);
       console.log(message.emails);
-      sendEmail(message.emails, {subject : "Registration successfull", body : message.content.message});
+      sendEmail(message.emails, {subject : message.content.subject, body : message.content.message});
       console.log('mail sent successfully');
       channel.ack(msg);
     }

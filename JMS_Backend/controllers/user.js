@@ -97,6 +97,7 @@ const register = async (req,res)=>{
         const message={
             emails:[email],
             content:{
+                subject: `Hi ${username}, Registration Successfull on JMS`,
                 message: `You have successfully register to job management system with username ${username}`
             }
         }
@@ -199,8 +200,29 @@ const changeRole = async (req,res)=>{
     const id = req.params.id;
     try {
         await userModel.updateOne({_id:id}, {$set : {role : newRole}});
+        const cacheData = await getFromCatch('user'+id);
+        if(cacheData.status=='CACHE HIT'){
+            return res.status(200).send(cacheData.data);
+        }
+        const data = await userModel.findOne({_id: id});
+        const email = data.email;
+        const username = data.username;
+
         deleteKey('user'+id);
         deleteKey('users');
+
+        
+        const message={
+            emails:[email],
+            content:{
+                subject: `New role assigned`,
+                message: `Hi ${username}, You have been assigned new role as ${newRole}`
+            }
+        }
+
+        await sendMessage(message,'Register');
+
+
         return res.status(200).send({success : true, message : `successfully changed user role with user id : ${id} to ${newRole}`})
     } catch (error) {
         return res.status(400).send({success : false, message : `Could not change role of user with id ${id}`, error : error});
