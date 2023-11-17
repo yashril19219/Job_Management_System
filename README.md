@@ -19,8 +19,8 @@ Before you begin, ensure you have the following installed on your machine:
 1. Clone the repository:
 
     ```bash
-    git clone https://github.com/your-username/your-repository.git
-    cd your-repository
+    git clone https://github.com/yashril19219/Job_Management_System.git
+    cd Job_Management_System
     ```
 
 2. Start the infrastructure services using Docker Compose:
