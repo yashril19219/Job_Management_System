@@ -143,6 +143,9 @@ async function updateJobById(jobId, updatedFields) {
   }
 }
 
+//createJobIndex();
+//mapDataToIndex();
+
 
 module.exports={
   search,

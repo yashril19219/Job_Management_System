@@ -39,14 +39,20 @@ async function handleGetJob(req,res){
     }
 
     if(keyword){
-        const data=await search(keyword);
+        try{
+            const data=await search(keyword);
 
-        if(data.status){
-            res.send(data.data);
-            return ;
+            if(data.status){
+                res.send(data.data);
+                return ;
+            }
+
+            res.send({status:'FAIL'});
         }
-
-        res.send({status:'FAIL'});
+        catch(err){
+            res.send({status:'FAIL',error:err});
+        }
+        
         return ;
     }
 
