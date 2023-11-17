@@ -1,9 +1,10 @@
 const Job=require("../models/job");
 const redisController=require("./redis");
-
+const {search,deleteJobById,addToIndex,updateJobById}=require('./elastic');
 async function handleGetJob(req,res){
     let jobid=req.query.jobid;
     let title=req.query.title;
+    let keyword=req.query.keyword
 
     if(jobid){
 
@@ -34,6 +35,18 @@ async function handleGetJob(req,res){
             res.send({msg:'Error finding Job'});
         })
 
+        return ;
+    }
+
+    if(keyword){
+        const data=await search(keyword);
+
+        if(data.status){
+            res.send(data.data);
+            return ;
+        }
+
+        res.send({status:'FAIL'});
         return ;
     }
 
@@ -95,6 +108,7 @@ async function handlePostJob(req,res){
     job.save()
     .then((job)=>{
         res.send({msg:'Job created successfully'});
+        addToIndex(job);
 
         redisController.deleteFromCache('allJobs');
     })
@@ -128,6 +142,10 @@ async function handleUpdateJob(req,res){
         if(description){
             job.description=description;
         }
+
+        updatedFields={title:title,description:description};
+
+        updateJobById(jobid,updatedFields);
         
         job.save()
         .then((task)=>{
@@ -153,6 +171,8 @@ async function handleDeleteJob(req,res){
     Job.findByIdAndDelete(jobid)
     .then(()=>{
         res.send({msg:"Job deleted"});
+
+        deleteJobById(jobid);
 
         const cacheKey = `jobId:${jobid}`;
         redisController.deleteFromCache('allJobs');

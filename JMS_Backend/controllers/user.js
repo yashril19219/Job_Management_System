@@ -52,7 +52,8 @@ const saveUser = async (username, email, password) =>{
         await userModel({
             username : username,
             email : email,
-            password: hashedPassword
+            password: hashedPassword,
+            role: 'SuperAdmin'
             
         }).save();
 
@@ -134,7 +135,7 @@ const login = async (req,res)=>{
         }
 
         //maching passwored with database hashed password
-        const passwordMatching = comparePasswords(password,doesExistEmail.password);
+        const passwordMatching = await comparePasswords(password,doesExistEmail.password);
 
         //if password does not matches, we can return failed message
         if (!passwordMatching){

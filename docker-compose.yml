@@ -38,9 +38,11 @@ services:
 
   elastic:
     image: elasticsearch:7.17.14
-    container_name: 'elastic'
+    container_name: 'elasticsearch'
     ports:
       - 9200:9200
+    volumes:
+      - elasticData:/usr/share/elasticsearch/data
     environment:
       discovery.type: 'single-node'
       xpack.security.enabled: 'true'
@@ -54,8 +56,11 @@ services:
     container_name: 'kibana'
     ports:
       - 5601:5601
-    volumes:
-      - ./kibana.yml:/usr/share/kibana/config/kibana.yml
+    environment:
+      - SERVERNAME=kibana
+      - ELASTICSEARCH_HOSTS=http://localhost:9200/
+      - ELASTICSEARCH_USERNAME=elastic
+      - ELASTICSEARCH_PASSWORD=root
     networks:
       - JMS_network
 
@@ -69,6 +74,7 @@ networks:
 volumes:
   mongoData:
   redisData:
+  elasticData:
   
 
 
