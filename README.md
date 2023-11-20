@@ -67,6 +67,10 @@ Before you begin, ensure you have the following installed on your machine:
 - The job management system API is accessible at `http://localhost:8000`.
 
 
+## Postman Collection
+    https://elements.getpostman.com/redirect?entityId=29717768-cdae8f08-9ee7-4037-8cbd-00b1736f305c&entityType=collection
+
+
 
 Refer to the respective service documentation for API endpoints and usage details.
 
